@@ -42,6 +42,31 @@ func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 	return r.templates.ExecuteTemplate(w, name, data)
 }
 
+const BASE_PATH = "/home/isucon/isubata/webapp/public/icons/"
+
+func saveFile(name string, data []byte) {
+	file, err := os.OpenFile(BASE_PATH+name, os.O_WRONLY|os.O_CREATE, 0777)
+	if err != nil {
+		log.Printf("icon Init Error occured: %q", err)
+	}
+	defer file.Close()
+
+	file.Write(data)
+}
+
+func initIcons() {
+	log.Printf("icon Init started.")
+	icons := []Icon{}
+	err := db.Select(&icons, "SELECT name, data FROM image")
+	if err != nil {
+		log.Printf("icon init select error: %q", err)
+	}
+	for _, icon := range icons {
+		saveFile(icon.Name, icon.Data)
+	}
+	log.Printf("Icon Initialize Succeeeded.")
+}
+
 func init() {
 	seedBuf := make([]byte, 8)
 	crand.Read(seedBuf)
@@ -81,6 +106,8 @@ func init() {
 	db.SetMaxOpenConns(20)
 	db.SetConnMaxLifetime(5 * time.Minute)
 	log.Printf("Succeeded to connect db.")
+
+	initIcons()
 }
 
 func getUser(userID int64) (*User, error) {
@@ -565,10 +592,7 @@ func postProfile(c echo.Context) error {
 	}
 
 	if avatarName != "" && len(avatarData) > 0 {
-		_, err := db.Exec("INSERT INTO image (name, data) VALUES (?, ?)", avatarName, avatarData)
-		if err != nil {
-			return err
-		}
+		saveFile(avatarName, avatarData)
 		_, err = db.Exec("UPDATE user SET avatar_icon = ? WHERE id = ?", avatarName, self.ID)
 		if err != nil {
 			return err
@@ -657,7 +681,6 @@ func main() {
 
 	e.GET("add_channel", getAddChannel)
 	e.POST("add_channel", postAddChannel)
-	e.GET("/icons/:file_name", getIcon)
 
 	e.Start(":5000")
 }

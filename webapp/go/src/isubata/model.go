@@ -48,3 +48,9 @@ type MessageUser struct {
 	DisplayName string `json:"display_name" db:"display_name"`
 	AvatarIcon  string `json:"avatar_icon" db:"avatar_icon"`
 }
+
+// IconのInitializeのため
+type Icon struct {
+	Name string `db:"name"`
+	Data []byte `db:"data"`
+}
