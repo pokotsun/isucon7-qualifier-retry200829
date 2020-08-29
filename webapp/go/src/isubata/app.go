@@ -46,7 +46,10 @@ func initIcons() {
 	log.Printf("icon Init started.")
 	basePath := "/home/isucon/isubata/webapp/public/icons"
 	icons := []Icon{}
-	db.Select(&icons, "SELECT * FROM image")
+	err := db.Select(&icons, "SELECT * FROM image")
+	if err != nil {
+		log.Printf("icon init select error: %q", err)
+	}
 	for _, icon := range icons {
 		file, err := os.Open(basePath + icon.Name)
 		if err != nil {
