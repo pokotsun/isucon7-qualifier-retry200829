@@ -1,0 +1,13 @@
+.DS_Store
+*.swp
+*.swo
+*.pyc
+.idea/
+bench/isucon7q-initial-dataset.sql.gz
+bench/result.json
+webapp/nodejs
+webapp/perl
+webapp/php
+webapp/public
+bench/
+provisioning/
