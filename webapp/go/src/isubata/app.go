@@ -344,24 +344,11 @@ func postMessage(c echo.Context) error {
 	return c.NoContent(204)
 }
 
-func queryChannels() ([]int64, error) {
-	res := []int64{}
-	err := db.Select(&res, "SELECT id FROM channel")
+func queryChannelHaveReads(userID int64) ([]ChannelHaveRead, error) {
+	res := []ChannelHaveRead{}
+	err := db.Select(&res, "SELECT c.id, IFNULL(h.message_id, 0) AS message_id FROM channel AS c LEFT JOIN (SELECT channel_id, message_id FROM haveread WHERE user_id = ?) AS h ON c.id = h.channel_id", userID)
+
 	return res, err
-}
-
-func queryHaveRead(userID, chID int64) (int64, error) {
-	h := HaveRead{}
-
-	err := db.Get(&h, "SELECT * FROM haveread WHERE user_id = ? AND channel_id = ?",
-		userID, chID)
-
-	if err == sql.ErrNoRows {
-		return 0, nil
-	} else if err != nil {
-		return 0, err
-	}
-	return h.MessageID, nil
 }
 
 func fetchUnread(c echo.Context) error {
@@ -372,18 +359,17 @@ func fetchUnread(c echo.Context) error {
 
 	time.Sleep(time.Second)
 
-	channels, err := queryChannels()
+	channelHavereads, err := queryChannelHaveReads(userID)
 	if err != nil {
+		log.Printf("ChannelHaveread Select Err: %q", err)
 		return err
 	}
 
 	resp := []map[string]interface{}{}
 
-	for _, chID := range channels {
-		lastID, err := queryHaveRead(userID, chID)
-		if err != nil {
-			return err
-		}
+	for _, chHaveRead := range channelHavereads {
+		chID := chHaveRead.ID
+		lastID := chHaveRead.MessageID
 
 		var cnt int64
 		if lastID > 0 {
