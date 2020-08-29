@@ -3,6 +3,9 @@ package main
 import "github.com/jmoiron/sqlx"
 
 func fetchUserDictByMessages(msgs []Message) (map[int64]*User, error) {
+	if len(msgs) == 0 {
+		return nil, nil
+	}
 	res := map[int64]*User{}
 	var userIDs []int64
 	for _, v := range msgs {
