@@ -18,8 +18,8 @@ func fetchUserDictByMessages(msgs []Message) (map[int64]*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, v := range users {
-		res[v.ID] = &v
+	for i := range users {
+		res[users[i].ID] = &users[i]
 	}
 
 	return res, nil
