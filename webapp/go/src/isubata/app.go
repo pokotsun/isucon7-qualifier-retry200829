@@ -43,17 +43,19 @@ func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 }
 
 func initIcons() {
+	log.Printf("icon Init started.")
+	basePath := "/home/isucon/isubata/webapp/public/icons"
 	icons := []Icon{}
 	db.Select(&icons, "SELECT * FROM icons")
-	basePath := "/home/isucon/isubata/webapp/public/icons"
 	for _, icon := range icons {
-		file, err := os.Open(basePath + icon.name)
+		file, err := os.Open(basePath + icon.Name)
 		if err != nil {
 			log.Printf("icon Init Error occured: %q", err)
 		}
+		log.Printf("icon name: %s", icon.Name)
 		defer file.Close()
 
-		file.Write(icon.data)
+		file.Write(icon.Data)
 	}
 	log.Printf("Icon Initialize Succeeeded.")
 }
@@ -740,7 +742,7 @@ func main() {
 
 	e.GET("add_channel", getAddChannel)
 	e.POST("add_channel", postAddChannel)
-	e.GET("/icons/:file_name", getIcon)
+	// e.GET("/icons/:file_name", getIcon)
 
 	e.Start(":5000")
 }

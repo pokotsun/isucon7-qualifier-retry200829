@@ -37,6 +37,6 @@ type HaveRead struct {
 }
 
 type Icon struct {
-	name string `db:"name"`
-	data []byte `db:"data"`
+	Name string `db:"name"`
+	Data []byte `db:"data"`
 }
