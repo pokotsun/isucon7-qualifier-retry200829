@@ -46,7 +46,7 @@ func initIcons() {
 	log.Printf("icon Init started.")
 	basePath := "/home/isucon/isubata/webapp/public/icons"
 	icons := []Icon{}
-	err := db.Select(&icons, "SELECT * FROM image")
+	err := db.Select(&icons, "SELECT name, data FROM image")
 	if err != nil {
 		log.Printf("icon init select error: %q", err)
 	}
