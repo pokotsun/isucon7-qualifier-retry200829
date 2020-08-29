@@ -40,7 +40,7 @@ skip-external-locking
 
 ### SLOW QUERY
 slow_query_log=ON
-long_query_time = 0.5
+long_query_time = 0.1
 slow_query_log_file = /var/log/mysql/slow-query.log
 ### SLOW QUERY
 
