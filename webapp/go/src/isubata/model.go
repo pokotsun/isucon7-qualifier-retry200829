@@ -59,3 +59,8 @@ type ChannelHaveRead struct {
 	ID        int64 `db:"id"`
 	MessageID int64 `db:"message_id"`
 }
+
+type ChannelCount struct {
+	ChannelID int64 `db:channel_id`
+	Count     int64 `db:cnt`
+}
