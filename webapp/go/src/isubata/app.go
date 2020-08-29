@@ -45,7 +45,7 @@ func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 func initIcons() {
 	icons := []Icon{}
 	db.Select(&icons, "SELECT * FROM icons")
-	basePath := "/home/isucon/isubata/webapp/public/"
+	basePath := "/home/isucon/isubata/webapp/public/icons"
 	for _, icon := range icons {
 		file, err := os.Open(basePath + icon.name)
 		if err != nil {
