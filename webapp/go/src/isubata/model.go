@@ -35,3 +35,8 @@ type HaveRead struct {
 	UpdatedAt time.Time `db:"updated_at"`
 	CreatedAt time.Time `db:"created_at"`
 }
+
+type Icon struct {
+	name string `db:"name"`
+	data []byte `db:"data"`
+}

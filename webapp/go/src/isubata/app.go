@@ -42,6 +42,22 @@ func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 	return r.templates.ExecuteTemplate(w, name, data)
 }
 
+func initIcons() {
+	icons := []Icon{}
+	db.Select(&icons, "SELECT * FROM icons")
+	basePath := "/home/isucon/isubata/webapp/public/"
+	for _, icon := range icons {
+		file, err := os.Open(basePath + icon.name)
+		if err != nil {
+			log.Printf("icon Init Error occured: %q", err)
+		}
+		defer file.Close()
+
+		file.Write(icon.data)
+	}
+	log.Printf("Icon Initialize Succeeeded.")
+}
+
 func init() {
 	seedBuf := make([]byte, 8)
 	crand.Read(seedBuf)
@@ -81,6 +97,8 @@ func init() {
 	db.SetMaxOpenConns(20)
 	db.SetConnMaxLifetime(5 * time.Minute)
 	log.Printf("Succeeded to connect db.")
+
+	initIcons()
 }
 
 func getUser(userID int64) (*User, error) {
@@ -629,6 +647,7 @@ func postProfile(c echo.Context) error {
 	}
 
 	if avatarName != "" && len(avatarData) > 0 {
+		// TODO imageのアップロード先の変更
 		_, err := db.Exec("INSERT INTO image (name, data) VALUES (?, ?)", avatarName, avatarData)
 		if err != nil {
 			return err
