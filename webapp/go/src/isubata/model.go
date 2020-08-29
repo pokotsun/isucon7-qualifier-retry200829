@@ -35,3 +35,16 @@ type HaveRead struct {
 	UpdatedAt time.Time `db:"updated_at"`
 	CreatedAt time.Time `db:"created_at"`
 }
+
+// getMessageのため
+type MessageUser struct {
+	ID        int64     `db:"id"`
+	ChannelID int64     `db:"channel_id"`
+	UserID    int64     `db:"user_id"`
+	Content   string    `db:"content"`
+	CreatedAt time.Time `db:"created_at"`
+
+	Name        string `json:"name" db:"name"`
+	DisplayName string `json:"display_name" db:"display_name"`
+	AvatarIcon  string `json:"avatar_icon" db:"avatar_icon"`
+}
