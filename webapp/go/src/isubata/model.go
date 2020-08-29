@@ -54,3 +54,8 @@ type Icon struct {
 	Name string `db:"name"`
 	Data []byte `db:"data"`
 }
+
+type ChannelHaveRead struct {
+	ID        int64 `db:"id"`
+	MessageID int64 `db:"message_id"`
+}
