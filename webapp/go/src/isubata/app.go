@@ -83,16 +83,6 @@ func init() {
 	log.Printf("Succeeded to connect db.")
 }
 
-type User struct {
-	ID          int64     `json:"-" db:"id"`
-	Name        string    `json:"name" db:"name"`
-	Salt        string    `json:"-" db:"salt"`
-	Password    string    `json:"-" db:"password"`
-	DisplayName string    `json:"display_name" db:"display_name"`
-	AvatarIcon  string    `json:"avatar_icon" db:"avatar_icon"`
-	CreatedAt   time.Time `json:"-" db:"created_at"`
-}
-
 func getUser(userID int64) (*User, error) {
 	u := User{}
 	if err := db.Get(&u, "SELECT * FROM user WHERE id = ?", userID); err != nil {
@@ -112,14 +102,6 @@ func addMessage(channelID, userID int64, content string) (int64, error) {
 		return 0, err
 	}
 	return res.LastInsertId()
-}
-
-type Message struct {
-	ID        int64     `db:"id"`
-	ChannelID int64     `db:"channel_id"`
-	UserID    int64     `db:"user_id"`
-	Content   string    `db:"content"`
-	CreatedAt time.Time `db:"created_at"`
 }
 
 func queryMessages(chanID, lastID int64) ([]Message, error) {
@@ -220,14 +202,6 @@ func getIndex(c echo.Context) error {
 	return c.Render(http.StatusOK, "index", map[string]interface{}{
 		"ChannelID": nil,
 	})
-}
-
-type ChannelInfo struct {
-	ID          int64     `db:"id"`
-	Name        string    `db:"name"`
-	Description string    `db:"description"`
-	UpdatedAt   time.Time `db:"updated_at"`
-	CreatedAt   time.Time `db:"created_at"`
 }
 
 func getChannel(c echo.Context) error {
@@ -416,13 +390,6 @@ func queryChannels() ([]int64, error) {
 }
 
 func queryHaveRead(userID, chID int64) (int64, error) {
-	type HaveRead struct {
-		UserID    int64     `db:"user_id"`
-		ChannelID int64     `db:"channel_id"`
-		MessageID int64     `db:"message_id"`
-		UpdatedAt time.Time `db:"updated_at"`
-		CreatedAt time.Time `db:"created_at"`
-	}
 	h := HaveRead{}
 
 	err := db.Get(&h, "SELECT * FROM haveread WHERE user_id = ? AND channel_id = ?",
