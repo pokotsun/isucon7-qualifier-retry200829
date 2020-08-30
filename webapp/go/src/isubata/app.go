@@ -32,6 +32,7 @@ const (
 var (
 	db            *sqlx.DB
 	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
+	cacheClient   *redisClient
 )
 
 type Renderer struct {
@@ -108,6 +109,8 @@ func init() {
 	log.Printf("Succeeded to connect db.")
 
 	initIcons()
+
+	cacheClient = NewRedis("tcp", ":6379")
 }
 
 func getUser(userID int64) (*User, error) {

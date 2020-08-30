@@ -11,3 +11,5 @@ webapp/php
 webapp/public
 bench/
 provisioning/
+.vagrant/
+Vagrantfile
