@@ -110,7 +110,7 @@ func init() {
 
 	initIcons()
 
-	cacheClient = NewRedis("tcp", ":6379")
+	cacheClient = NewRedis("tcp", "localhost:6379")
 }
 
 func getUser(userID int64) (*User, error) {
