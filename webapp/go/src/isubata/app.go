@@ -32,6 +32,7 @@ const (
 var (
 	db            *sqlx.DB
 	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
+	cacheClient   *redisClient
 )
 
 type Renderer struct {
@@ -108,6 +109,8 @@ func init() {
 	log.Printf("Succeeded to connect db.")
 
 	initIcons()
+
+	cacheClient = NewRedis("tcp", "localhost:6379")
 }
 
 func getUser(userID int64) (*User, error) {
@@ -340,6 +343,12 @@ func postMessage(c echo.Context) error {
 	if _, err := addMessage(chanID, user.ID, message); err != nil {
 		return err
 	}
+	cnt, err := getChannelCount(cacheClient, chanID)
+	if err != nil {
+		log.Printf("Get Cache Count Err: %s", err)
+		return err
+	}
+	setChannelCount(cacheClient, chanID, cnt+1)
 
 	return c.NoContent(204)
 }
@@ -367,11 +376,6 @@ func fetchUnread(c echo.Context) error {
 
 	resp := []map[string]interface{}{}
 
-	dict, err := fetchChannelCountDict()
-	if err != nil {
-		log.Printf("fetchChannelCount Err: %q", err)
-		return err
-	}
 	for _, chHaveRead := range channelHavereads {
 		chID := chHaveRead.ID
 		lastID := chHaveRead.MessageID
@@ -382,7 +386,10 @@ func fetchUnread(c echo.Context) error {
 				"SELECT COUNT(*) as cnt FROM message WHERE channel_id = ? AND ? < id",
 				chID, lastID)
 		} else {
-			cnt, _ = dict[chID]
+			cnt, err = getChannelCount(cacheClient, chID)
+			if err != nil {
+				return err
+			}
 		}
 		if err != nil {
 			return err
@@ -540,6 +547,7 @@ func postAddChannel(c echo.Context) error {
 		return err
 	}
 	lastID, _ := res.LastInsertId()
+	setChannelCount(cacheClient, lastID, 0)
 	return c.Redirect(http.StatusSeeOther,
 		fmt.Sprintf("/channel/%v", lastID))
 }
