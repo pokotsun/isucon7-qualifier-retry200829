@@ -23,6 +23,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/middleware"
+	"go.uber.org/zap"
 )
 
 const (
@@ -33,6 +34,7 @@ var (
 	db            *sqlx.DB
 	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
 	cacheClient   *redisClient
+	sugar         *zap.SugaredLogger
 )
 
 type Renderer struct {
@@ -48,7 +50,7 @@ const BASE_PATH = "/home/isucon/isubata/webapp/public/icons/"
 func saveFile(name string, data []byte) {
 	file, err := os.OpenFile(BASE_PATH+name, os.O_WRONLY|os.O_CREATE, 0777)
 	if err != nil {
-		log.Printf("icon Init Error occured: %q", err)
+		sugar.Errorf("Icon Init Error: %s", err)
 	}
 	defer file.Close()
 
@@ -56,19 +58,23 @@ func saveFile(name string, data []byte) {
 }
 
 func initIcons() {
-	log.Printf("icon Init started.")
+	sugar.Infof("Icon Init started.")
 	icons := []Icon{}
 	err := db.Select(&icons, "SELECT name, data FROM image")
 	if err != nil {
-		log.Printf("icon init select error: %q", err)
+		sugar.Errorf("Icon Init Select Err: %s", err)
 	}
 	for _, icon := range icons {
 		saveFile(icon.Name, icon.Data)
 	}
-	log.Printf("Icon Initialize Succeeeded.")
+	sugar.Infof("Icon Init Succeeded.")
 }
 
 func init() {
+	logger, _ := zap.NewDevelopment()
+	defer logger.Sync()
+	sugar = logger.Sugar()
+
 	seedBuf := make([]byte, 8)
 	crand.Read(seedBuf)
 	rand.Seed(int64(binary.LittleEndian.Uint64(seedBuf)))
@@ -345,7 +351,7 @@ func postMessage(c echo.Context) error {
 	}
 	cnt, err := getChannelCount(cacheClient, chanID)
 	if err != nil {
-		log.Printf("Get Cache Count Err: %s", err)
+		sugar.Errorf("Get Cache Count Err: %s", err)
 		return err
 	}
 	setChannelCount(cacheClient, chanID, cnt+1)
@@ -370,7 +376,7 @@ func fetchUnread(c echo.Context) error {
 
 	channelHavereads, err := queryChannelHaveReads(userID)
 	if err != nil {
-		log.Printf("ChannelHaveread Select Err: %q", err)
+		sugar.Errorf("ChannelHaveread Select Err: %s", err)
 		return err
 	}
 
@@ -439,14 +445,10 @@ func getHistory(c echo.Context) error {
 		return ErrBadReqeust
 	}
 
-	messages := []Message{}
+	messages := []MessageUser{}
 	err = db.Select(&messages,
-		"SELECT * FROM message WHERE channel_id = ? ORDER BY id DESC LIMIT ? OFFSET ?",
+		"SELECT m.*, u.name, u.display_name, u.avatar_icon FROM message m INNER JOIN user u ON m.user_id = u.id WHERE m.channel_id = ? ORDER BY m.id DESC LIMIT ? OFFSET ?",
 		chID, N, (page-1)*N)
-	if err != nil {
-		return err
-	}
-	dict, err := fetchUserDictByMessages(messages)
 	if err != nil {
 		return err
 	}
@@ -456,7 +458,7 @@ func getHistory(c echo.Context) error {
 		m := messages[i]
 		r := make(map[string]interface{})
 		r["id"] = m.ID
-		r["user"], _ = dict[m.UserID]
+		r["user"] = User{Name: m.Name, DisplayName: m.DisplayName, AvatarIcon: m.AvatarIcon}
 		r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
 		r["content"] = m.Content
 		mjson = append(mjson, r)

@@ -20,6 +20,7 @@ require (
 	github.com/mattn/go-isatty v0.0.8
 	github.com/valyala/bytebufferpool v1.0.0
 	github.com/valyala/fasttemplate v1.0.1
+	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
 	golang.org/x/tools v0.0.0-20200828161849-5deb26317202 // indirect
