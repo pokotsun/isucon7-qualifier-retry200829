@@ -70,6 +70,12 @@ func initIcons() {
 	sugar.Infof("Icon Init Succeeded.")
 }
 
+func initChannelCounts() {
+	var channelCounts []ChannelCount
+	db.Select(channelCounts, "SELECT channel_id, COUNT(*) AS cnt FROM message GROUP BY channel_id")
+	multiSetChannelCount(channelCounts)
+}
+
 func init() {
 	logger, _ := zap.NewDevelopment()
 	defer logger.Sync()
@@ -117,6 +123,8 @@ func init() {
 	initIcons()
 
 	cacheClient = NewRedis("tcp", "localhost:6379")
+
+	initChannelCounts()
 }
 
 func getUser(userID int64) (*User, error) {

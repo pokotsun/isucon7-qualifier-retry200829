@@ -2,11 +2,29 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 )
 
 func getChannelCountKey(channelID int64) string {
 	return fmt.Sprintf("CHANNEL_COUNT-channelID-%d", channelID)
+}
+
+func multiSetChannelCount(channelCounts []ChannelCount) {
+	cmap := make(map[string][]byte)
+
+	for _, chCount := range channelCounts {
+		key := getChannelCountKey(chCount.ChannelID)
+		v, err := json.Marshal(chCount.Count)
+		if err != nil {
+			sugar.Errorf("jsonMarshal Err: %s", err)
+		}
+		cmap[key] = v
+	}
+	err := cacheClient.MultiSet(cmap)
+	if err != nil {
+		sugar.Errorf("cache MSet ChannelCount: %s", err)
+	}
 }
 
 func setChannelCount(channelID, count int64) {
