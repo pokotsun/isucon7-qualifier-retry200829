@@ -122,9 +122,8 @@ func init() {
 
 	initIcons()
 
-	cacheClient = NewRedis("tcp", "localhost:6379")
+	cacheClient = NewRedis("tcp", "127.0.0.1:6379")
 
-	initChannelCounts()
 }
 
 func getUser(userID int64) (*User, error) {
@@ -228,6 +227,8 @@ func getInitialize(c echo.Context) error {
 	db.MustExec("DELETE FROM message WHERE id > 10000")
 	db.MustExec("DELETE FROM haveread")
 	cacheClient.Flush()
+	// cacheのinit処理はここに書く
+	initChannelCounts()
 	return c.String(204, "")
 }
 
